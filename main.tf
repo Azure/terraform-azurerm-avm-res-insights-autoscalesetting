@@ -1,29 +1,106 @@
-# TODO: Replace this dummy resource azurerm_resource_group.TODO with your module resource
-resource "azurerm_resource_group" "TODO" {
-  location = var.location
-  name     = var.name # calling code must supply the name
-  tags     = var.tags
-}
+resource "azurerm_monitor_autoscale_setting" "monitor_autoscale_setting" {
+  location            = var.location
+  name                = var.name
+  resource_group_name = var.resource_group_name
+  target_resource_id  = var.target_resource_id
+  enabled             = var.enabled
+  tags                = var.tags
 
-# required AVM resources interfaces
-resource "azurerm_management_lock" "this" {
-  count = var.lock != null ? 1 : 0
+  dynamic "profile" {
+    for_each = var.profiles
 
-  lock_level = var.lock.kind
-  name       = coalesce(var.lock.name, "lock-${var.lock.kind}")
-  scope      = azurerm_resource_group.TODO.id # TODO: Replace with your azurerm resource name
-  notes      = var.lock.kind == "CanNotDelete" ? "Cannot delete the resource or its child resources." : "Cannot delete or modify the resource or its child resources."
-}
+    content {
+      name = profile.value.name
 
-resource "azurerm_role_assignment" "this" {
-  for_each = var.role_assignments
+      capacity {
+        default = profile.value.capacity.default
+        maximum = profile.value.capacity.maximum
+        minimum = profile.value.capacity.minimum
+      }
+      dynamic "fixed_date" {
+        for_each = profile.value.fixed_date == null ? [] : [profile.value.fixed_date]
 
-  principal_id                           = each.value.principal_id
-  scope                                  = azurerm_resource_group.TODO.id # TODO: Replace this dummy resource azurerm_resource_group.TODO with your module resource
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
+        content {
+          end      = fixed_date.value.end
+          start    = fixed_date.value.start
+          timezone = try(fixed_date.value.timezone, null)
+        }
+      }
+      dynamic "recurrence" {
+        for_each = profile.value.recurrence == null ? [] : [profile.value.recurrence]
+
+        content {
+          days     = recurrence.value.days
+          hours    = recurrence.value.hours
+          minutes  = recurrence.value.minutes
+          timezone = try(recurrence.value.timezone, null)
+        }
+      }
+      dynamic "rule" {
+        for_each = profile.value.rules == null ? {} : profile.value.rules
+
+        content {
+          metric_trigger {
+            metric_name              = rule.value.metric_trigger.metric_name
+            metric_resource_id       = coalesce(rule.value.metric_trigger.metric_resource_id, var.target_resource_id)
+            operator                 = rule.value.metric_trigger.operator
+            statistic                = rule.value.metric_trigger.statistic
+            threshold                = rule.value.metric_trigger.threshold
+            time_aggregation         = rule.value.metric_trigger.time_aggregation
+            time_grain               = rule.value.metric_trigger.time_grain
+            time_window              = rule.value.metric_trigger.time_window
+            divide_by_instance_count = try(rule.value.metric_trigger.divide_by_instance_count, null)
+            metric_namespace         = try(rule.value.metric_trigger.metric_namespace, null)
+
+            dynamic "dimensions" {
+              for_each = rule.value.metric_trigger.dimensions == null ? {} : rule.value.metric_trigger.dimensions
+
+              content {
+                name     = dimensions.value.name
+                operator = dimensions.value.operator
+                values   = dimensions.value.values
+              }
+            }
+          }
+          scale_action {
+            cooldown  = rule.value.scale_action.cooldown
+            direction = rule.value.scale_action.direction
+            type      = rule.value.scale_action.type
+            value     = rule.value.scale_action.value
+          }
+        }
+      }
+    }
+  }
+  dynamic "notification" {
+    for_each = var.notification == null ? [] : [var.notification]
+
+    content {
+      dynamic "email" {
+        for_each = notification.value.email == null ? [] : [notification.value.email]
+
+        content {
+          custom_emails                         = try(email.value.custom_emails, null)
+          send_to_subscription_administrator    = try(email.value.send_to_subscription_administrator, null)
+          send_to_subscription_co_administrator = try(email.value.send_to_subscription_co_administrator, null)
+        }
+      }
+      dynamic "webhook" {
+        for_each = notification.value.webhooks == null ? {} : notification.value.webhooks
+
+        content {
+          service_uri = webhook.value.service_uri
+          properties  = try(webhook.value.properties, null)
+        }
+      }
+    }
+  }
+  dynamic "predictive" {
+    for_each = var.predictive == null ? [] : [var.predictive]
+
+    content {
+      scale_mode      = predictive.value.scale_mode
+      look_ahead_time = try(predictive.value.look_ahead_time, null)
+    }
+  }
 }
