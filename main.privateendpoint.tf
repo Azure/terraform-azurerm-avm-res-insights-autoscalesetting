@@ -1,3 +1,4 @@
+/*
 # TODO remove this code & var.private_endpoints if private link is not support.  Note it must be included in this module if it is supported.
 resource "azurerm_private_endpoint" "this_managed_dns_zone_groups" {
   for_each = var.private_endpoints
@@ -76,3 +77,4 @@ resource "azurerm_private_endpoint_application_security_group_association" "this
   application_security_group_id = each.value.asg_resource_id
   private_endpoint_id           = var.private_endpoints_manage_dns_zone_group ? azurerm_private_endpoint.this_managed_dns_zone_groups[each.value.pe_key].id : azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.value.pe_key].id
 }
+*/

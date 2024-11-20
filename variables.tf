@@ -1,23 +1,15 @@
-variable "name" {
-  type        = string
-  description = <<DESCRIPTION
-(Required) The name of the AutoScale Setting. Changing this forces a new resource to be created.
-DESCRIPTION
-  nullable    = false
-}
-
-variable "resource_group_name" {
-  type        = string
-  description = <<DESCRIPTION
-(Required) The name of the Resource Group in the AutoScale Setting should be created. Changing this forces a new resource to be created.
-DESCRIPTION
-  nullable    = false
-}
-
 variable "location" {
   type        = string
   description = <<DESCRIPTION
 (Required) Specifies the supported Azure location where the AutoScale Setting should exist. Changing this forces a new resource to be created.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "name" {
+  type        = string
+  description = <<DESCRIPTION
+(Required) The name of the AutoScale Setting. Changing this forces a new resource to be created.
 DESCRIPTION
   nullable    = false
 }
@@ -108,6 +100,14 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "resource_group_name" {
+  type        = string
+  description = <<DESCRIPTION
+(Required) The name of the Resource Group in the AutoScale Setting should be created. Changing this forces a new resource to be created.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "target_resource_id" {
   type        = string
   description = <<DESCRIPTION
@@ -115,55 +115,6 @@ variable "target_resource_id" {
 DESCRIPTION
   nullable    = false
 }
-
-variable "enabled" {
-  type        = bool
-  description = <<DESCRIPTION
-(Optional) Specifies whether automatic scaling is enabled for the target resource. Defaults to true.
-DESCRIPTION
-  default     = true
-  nullable    = false
-}
-
-
-variable "notification" {
-  type = object({
-    email = optional(object({
-      send_to_subscription_administrator    = optional(bool, false)
-      send_to_subscription_co_administrator = optional(bool, false)
-      custom_emails                         = optional(list(string), [])
-    }))
-    webhooks = optional(map(object({
-      service_uri = string
-      properties  = optional(map(string), {})
-    })))
-  })
-  description = <<DESCRIPTION
-(Optional) A notification block associated to autoscale setting. Defaults to null.
-- `email` - (Optional) A email block as defined below.
-  - `send_to_subscription_administrator` - (Optional) Should email notifications be sent to the subscription administrator? Defaults to false.
-  - `send_to_subscription_co_administrator` - (Optional) Should email notifications be sent to the subscription co-administrator? Defaults to false.
-  - `custom_emails` - (Optional) Specifies a list of custom email addresses to which the email notifications will be sent.
-- `webhook` - (Optional) One or more webhook blocks as defined below.
-  - `service_uri` - (Required) The HTTPS URI which should receive scale notifications.
-  - `properties` - (Optional) A map of settings.
-DESCRIPTION
-  default     = null
-}
-
-variable "predictive" {
-  type = object({
-    scale_mode      = string
-    look_ahead_time = optional(string)
-  })
-  description = <<DESCRIPTION
-(Optional) A predictive block associated to autoscale setting. Defaults to null.
-- `scale_mode` - (Required) Specifies the predictive scale mode. Possible values are Enabled or ForecastOnly.
-- `look_ahead_time` - (Optional) Specifies the amount of time by which instances are launched in advance. It must be between PT1M and PT1H in ISO 8601 format.
-DESCRIPTION
-  default     = null
-}
-
 
 # required AVM interfaces
 # remove only if not supported by the resource
@@ -244,6 +195,15 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "enabled" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+(Optional) Specifies whether automatic scaling is enabled for the target resource. Defaults to true.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "lock" {
   type = object({
     kind = string
@@ -277,6 +237,44 @@ Controls the Managed Identity configuration on this resource. The following prop
 - `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
 DESCRIPTION
   nullable    = false
+}
+
+variable "notification" {
+  type = object({
+    email = optional(object({
+      send_to_subscription_administrator    = optional(bool, false)
+      send_to_subscription_co_administrator = optional(bool, false)
+      custom_emails                         = optional(list(string), [])
+    }))
+    webhooks = optional(map(object({
+      service_uri = string
+      properties  = optional(map(string), {})
+    })))
+  })
+  default     = null
+  description = <<DESCRIPTION
+(Optional) A notification block associated to autoscale setting. Defaults to null.
+- `email` - (Optional) A email block as defined below.
+  - `send_to_subscription_administrator` - (Optional) Should email notifications be sent to the subscription administrator? Defaults to false.
+  - `send_to_subscription_co_administrator` - (Optional) Should email notifications be sent to the subscription co-administrator? Defaults to false.
+  - `custom_emails` - (Optional) Specifies a list of custom email addresses to which the email notifications will be sent.
+- `webhook` - (Optional) One or more webhook blocks as defined below.
+  - `service_uri` - (Required) The HTTPS URI which should receive scale notifications.
+  - `properties` - (Optional) A map of settings.
+DESCRIPTION
+}
+
+variable "predictive" {
+  type = object({
+    scale_mode      = string
+    look_ahead_time = optional(string)
+  })
+  default     = null
+  description = <<DESCRIPTION
+(Optional) A predictive block associated to autoscale setting. Defaults to null.
+- `scale_mode` - (Required) Specifies the predictive scale mode. Possible values are Enabled or ForecastOnly.
+- `look_ahead_time` - (Optional) Specifies the amount of time by which instances are launched in advance. It must be between PT1M and PT1H in ISO 8601 format.
+DESCRIPTION
 }
 
 variable "private_endpoints" {
