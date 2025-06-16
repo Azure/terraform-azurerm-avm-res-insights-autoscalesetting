@@ -143,19 +143,46 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
   version = "0.4.0"
 
+  extension_protected_setting = {}
+  location                    = azurerm_resource_group.this.location
   name                        = module.naming.virtual_machine_scale_set.name_unique
   resource_group_name         = azurerm_resource_group.this.name
-  enable_telemetry            = var.enable_telemetry
-  location                    = azurerm_resource_group.this.location
-  admin_password              = "P@ssw0rd1234!"
-  sku_name                    = module.get_valid_sku_for_deployment_region.sku
-  instances                   = 2
-  extension_protected_setting = {}
-  admin_ssh_keys              = []
   user_data_base64            = null
+  admin_password              = "P@ssw0rd1234!"
+  admin_ssh_keys              = []
   boot_diagnostics = {
     storage_account_uri = "" # Enable boot diagnostics
   }
+  data_disk = [{
+    caching                   = "ReadWrite"
+    create_option             = "Empty"
+    disk_size_gb              = 10
+    lun                       = 0
+    managed_disk_type         = "StandardSSD_LRS"
+    storage_account_type      = "StandardSSD_LRS"
+    write_accelerator_enabled = false
+  }]
+  enable_telemetry = var.enable_telemetry
+  extension = [
+    {
+      name                        = "CustomScriptExtension"
+      publisher                   = "Microsoft.Compute"
+      type                        = "CustomScriptExtension"
+      type_handler_version        = "1.10"
+      auto_upgrade_minor_version  = true
+      failure_suppression_enabled = false
+      settings                    = "{\"commandToExecute\":\"copy %SYSTEMDRIVE%\\\\AzureData\\\\CustomData.bin c:\\\\init-script.ps1 \\u0026 powershell -ExecutionPolicy Unrestricted -File %SYSTEMDRIVE%\\\\init-script.ps1\"}"
+    },
+    {
+      name                        = "HealthExtension"
+      publisher                   = "Microsoft.ManagedServices"
+      type                        = "ApplicationHealthWindows"
+      type_handler_version        = "1.0"
+      auto_upgrade_minor_version  = true
+      failure_suppression_enabled = false
+      settings                    = "{\"port\":80,\"protocol\":\"http\",\"requestPath\":\"index.html\"}"
+  }]
+  instances = 2
   network_interface = [{
     name                      = "VMSS-NIC"
     network_security_group_id = azurerm_network_security_group.nic.id
@@ -178,41 +205,15 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
       }]
     }
   }
-  data_disk = [{
-    caching                   = "ReadWrite"
-    create_option             = "Empty"
-    disk_size_gb              = 10
-    lun                       = 0
-    managed_disk_type         = "StandardSSD_LRS"
-    storage_account_type      = "StandardSSD_LRS"
-    write_accelerator_enabled = false
-  }]
+  sku_name = module.get_valid_sku_for_deployment_region.sku
   source_image_reference = {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2022-Datacenter"
     version   = "latest"
   }
-  extension = [
-    {
-      name                        = "CustomScriptExtension"
-      publisher                   = "Microsoft.Compute"
-      type                        = "CustomScriptExtension"
-      type_handler_version        = "1.10"
-      auto_upgrade_minor_version  = true
-      failure_suppression_enabled = false
-      settings                    = "{\"commandToExecute\":\"copy %SYSTEMDRIVE%\\\\AzureData\\\\CustomData.bin c:\\\\init-script.ps1 \\u0026 powershell -ExecutionPolicy Unrestricted -File %SYSTEMDRIVE%\\\\init-script.ps1\"}"
-    },
-    {
-      name                        = "HealthExtension"
-      publisher                   = "Microsoft.ManagedServices"
-      type                        = "ApplicationHealthWindows"
-      type_handler_version        = "1.0"
-      auto_upgrade_minor_version  = true
-      failure_suppression_enabled = false
-      settings                    = "{\"port\":80,\"protocol\":\"http\",\"requestPath\":\"index.html\"}"
-  }]
-  tags       = local.tags
+  tags = local.tags
+
   depends_on = [azurerm_subnet_nat_gateway_association.this]
 }
 
@@ -221,13 +222,8 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
 module "azurerm_monitor_autoscale_setting" {
   source = "../../"
 
-  location            = azurerm_resource_group.this.location
-  name                = "autoscale"
-  resource_group_name = azurerm_resource_group.this.name
-  target_resource_id  = module.terraform_azurerm_avm_res_compute_virtualmachinescaleset.resource_id
-  enabled             = true
-  tags                = local.tags
-
+  location = azurerm_resource_group.this.location
+  name     = "autoscale"
   profiles = {
     "profile1" = {
       name = "autoscale"
@@ -276,11 +272,14 @@ module "azurerm_monitor_autoscale_setting" {
       }
     }
   }
-
+  resource_group_name = azurerm_resource_group.this.name
+  target_resource_id  = module.terraform_azurerm_avm_res_compute_virtualmachinescaleset.resource_id
+  enabled             = true
   predictive = {
     scale_mode      = "Enabled"
     look_ahead_time = "PT5M"
   }
+  tags = local.tags
 }
 
 ```
@@ -292,7 +291,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.116.0, < 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.116, < 5)
 
 ## Resources
 
