@@ -3,6 +3,20 @@ module "naming" {
   source  = "Azure/naming/azurerm"
   version = "0.4.1"
 }
+
+module "vm_sku" {
+  source  = "Azure/avm-utl-sku-finder/azapi"
+  version = "0.3.0"
+
+  location      = azurerm_resource_group.this.location
+  cache_results = true
+  vm_filters = {
+    min_vcpus = 1
+    max_vcpus = 2
+  }
+}
+
+
 /*
 module "regions" {
   source                    = "Azure/avm-utl-regions/azurerm"
@@ -19,13 +33,14 @@ resource "random_integer" "zone_index" {
   max = length(module.regions.regions_by_name[module.regions.regions[random_integer.region_index.result].name].zones)
   min = 1
 }
-*/
+
 module "get_valid_sku_for_deployment_region" {
   source = "../../modules/sku_selector"
 
   # deployment_region = module.regions.regions[random_integer.region_index.result].name
   deployment_region = "eastasia"
 }
+*/
 
 # This is required for resource modules
 resource "azurerm_resource_group" "this" {
@@ -174,7 +189,7 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
       admin_ssh_key                   = toset([tls_private_key.example_ssh.id])
     }
   }
-  sku_name = module.get_valid_sku_for_deployment_region.sku
+  sku_name = module.vm_sku.sku
   source_image_reference = {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
