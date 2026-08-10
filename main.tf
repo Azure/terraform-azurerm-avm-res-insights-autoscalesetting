@@ -72,6 +72,7 @@ resource "azurerm_monitor_autoscale_setting" "monitor_autoscale_setting" {
       }
     }
   }
+
   dynamic "notification" {
     for_each = var.notification == null ? [] : [var.notification]
 
@@ -95,6 +96,7 @@ resource "azurerm_monitor_autoscale_setting" "monitor_autoscale_setting" {
       }
     }
   }
+
   dynamic "predictive" {
     for_each = var.predictive == null ? [] : [var.predictive]
 
