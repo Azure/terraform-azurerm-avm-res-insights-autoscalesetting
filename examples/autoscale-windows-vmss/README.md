@@ -163,7 +163,7 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     storage_account_type      = "StandardSSD_LRS"
     write_accelerator_enabled = false
   }]
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
   extension = [
     {
       name                        = "CustomScriptExtension"
@@ -275,6 +275,7 @@ module "azurerm_monitor_autoscale_setting" {
   }
   resource_group_name = azurerm_resource_group.this.name
   target_resource_id  = module.terraform_azurerm_avm_res_compute_virtualmachinescaleset.resource_id
+  enable_telemetry    = false
   enabled             = true
   predictive = {
     scale_mode      = "Enabled"
