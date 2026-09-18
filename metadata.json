@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Auto scale settings",
+  "moduleDescription": "AVM Resource Module for Auto scale settings",
+  "canonicalType": "Microsoft.Insights/autoscalesettings",
+  "owners": [
+    "MinHeinA"
+  ],
+  "telemetryIdPrefix": "46d3xtrf.res.f53d5fa"
+}
