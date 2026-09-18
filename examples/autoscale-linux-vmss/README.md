@@ -164,7 +164,7 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   boot_diagnostics = {
     storage_account_uri = "" # Enable boot diagnostics
   }
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
   extension = [{
     name                        = "HealthExtension"
     publisher                   = "Microsoft.ManagedServices"
@@ -261,7 +261,7 @@ module "azurerm_monitor_autoscale_setting" {
   }
   resource_group_name = azurerm_resource_group.this.name
   target_resource_id  = module.terraform_azurerm_avm_res_compute_virtualmachinescaleset.resource_id
-  enable_telemetry    = false
+  enable_telemetry    = var.enable_telemetry
   enabled             = true
   predictive = {
     scale_mode      = "Enabled"
@@ -315,7 +315,7 @@ If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ## Outputs
 
