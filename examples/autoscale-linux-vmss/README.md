@@ -18,7 +18,7 @@ This example demonstrates a deployment of linux VMSS with autoscale setting modu
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.1"
+  version = "0.4.3"
 }
 
 /*
@@ -146,12 +146,11 @@ resource "tls_private_key" "example_ssh" {
 
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.4.0"
+  version = "0.10.0"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
   name                        = module.naming.virtual_machine_scale_set.name_unique
-  resource_group_name         = azurerm_resource_group.this.name
   user_data_base64            = null
   admin_password              = "P@ssw0rd1234!"
   admin_ssh_keys = [(
@@ -199,7 +198,8 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     sku       = "22_04-LTS-gen2" # Auto guest patching is enabled on this sku.  https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching
     version   = "latest"
   }
-  tags = local.tags
+  tags                = local.tags
+  resource_group_name = azurerm_resource_group.this.name
 
   depends_on = [azurerm_subnet_nat_gateway_association.this]
 }
@@ -278,9 +278,9 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.116.0, < 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.116.0, < 5.5)
 
-- <a name="requirement_tls"></a> [tls](#requirement\_tls) (4.0.6)
+- <a name="requirement_tls"></a> [tls](#requirement\_tls) (4.4.0)
 
 ## Resources
 
@@ -296,7 +296,7 @@ The following resources are used by this module:
 - [azurerm_subnet_nat_gateway_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_nat_gateway_association) (resource)
 - [azurerm_subnet_network_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_network_security_group_association) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
-- [tls_private_key.example_ssh](https://registry.terraform.io/providers/hashicorp/tls/4.0.6/docs/resources/private_key) (resource)
+- [tls_private_key.example_ssh](https://registry.terraform.io/providers/hashicorp/tls/4.4.0/docs/resources/private_key) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -365,13 +365,13 @@ Version:
 
 Source: Azure/naming/azurerm
 
-Version: 0.4.1
+Version: 0.4.3
 
 ### <a name="module_terraform_azurerm_avm_res_compute_virtualmachinescaleset"></a> [terraform\_azurerm\_avm\_res\_compute\_virtualmachinescaleset](#module\_terraform\_azurerm\_avm\_res\_compute\_virtualmachinescaleset)
 
 Source: Azure/avm-res-compute-virtualmachinescaleset/azurerm
 
-Version: 0.4.0
+Version: 0.10.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
