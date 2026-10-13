@@ -11,6 +11,7 @@ mock_provider "modtm" {}
 mock_provider "random" {}
 
 variables {
+  enable_telemetry    = null
   location            = "eastasia"
   name                = "example"
   resource_group_name = "example"
