@@ -6,6 +6,8 @@ This is an AVM module for terraform-avm-res-insights-autoscalesetting. It manage
 
 This module *DOES NOT* create Virtual Machine Scale Sets, App Services or other scalable resource, but provides the autoscale settings that can be applied to these resources.
 
+This module and its examples require AzureRM v4. Upgrade caller provider constraints to `~> 4.0` before initializing. Autoscale resource addresses and scaling settings are unchanged.
+
 > [!IMPORTANT]
 > As the overall AVM framework is not GA (generally available) yet - the CI framework and test automation is not fully functional and implemented across all supported languages yet - breaking changes are expected, and additional customer feedback is yet to be gathered and incorporated. Hence, modules **MUST NOT** be published at version `1.0.0` or higher at this time.
 >
@@ -22,7 +24,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.116, < 5)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
