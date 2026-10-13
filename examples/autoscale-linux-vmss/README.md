@@ -21,23 +21,6 @@ module "naming" {
   version = "0.4.1"
 }
 
-/*
-module "regions" {
-  source                    = "Azure/avm-utl-regions/azurerm"
-  version                   = "=0.1.0"
-  availability_zones_filter = true
-}
-
-resource "random_integer" "region_index" {
-  max = length(module.regions.regions_by_name) - 1
-  min = 0
-}
-
-resource "random_integer" "zone_index" {
-  max = length(module.regions.regions_by_name[module.regions.regions[random_integer.region_index.result].name].zones)
-  min = 1
-}
-*/
 module "get_valid_sku_for_deployment_region" {
   source = "../../modules/sku_selector"
 
@@ -146,7 +129,7 @@ resource "tls_private_key" "example_ssh" {
 
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.4.0"
+  version = "0.5.3"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
@@ -278,7 +261,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.116.0, < 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
 - <a name="requirement_tls"></a> [tls](#requirement\_tls) (4.0.6)
 
@@ -371,7 +354,7 @@ Version: 0.4.1
 
 Source: Azure/avm-res-compute-virtualmachinescaleset/azurerm
 
-Version: 0.4.0
+Version: 0.5.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

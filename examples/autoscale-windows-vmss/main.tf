@@ -4,24 +4,6 @@ module "naming" {
   version = "0.4.1"
 }
 
-/*
-module "regions" {
-  source                    = "Azure/avm-utl-regions/azurerm"
-  version                   = "=0.1.0"
-  availability_zones_filter = true
-}
-
-resource "random_integer" "region_index" {
-  max = length(module.regions.regions_by_name) - 1
-  min = 0
-}
-
-resource "random_integer" "zone_index" {
-  max = length(module.regions.regions_by_name[module.regions.regions[random_integer.region_index.result].name].zones)
-  min = 1
-}
-*/
-
 module "get_valid_sku_for_deployment_region" {
   source = "../../modules/sku_selector"
 
@@ -126,7 +108,7 @@ resource "azurerm_subnet_nat_gateway_association" "this" {
 # This is the module call
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.4.0"
+  version = "0.5.3"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
