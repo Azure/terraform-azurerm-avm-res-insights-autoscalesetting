@@ -6,9 +6,15 @@ mock_provider "azurerm" {
   }
 }
 
-mock_provider "azapi" {}
-mock_provider "modtm" {}
-mock_provider "random" {}
+mock_provider "azapi" {
+  mock_data "azapi_client_config" {
+    defaults = {
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+    }
+  }
+}
+
+mock_provider "terraform" {}
 
 variables {
   enable_telemetry    = null
@@ -31,10 +37,9 @@ variables {
 run "defaults_and_scale_to_zero" {
   command = apply
   providers = {
-    azurerm = azurerm
-    azapi   = azapi
-    modtm   = modtm
-    random  = random
+    azurerm   = azurerm
+    azapi     = azapi
+    terraform = terraform
   }
 
   assert {
@@ -48,7 +53,7 @@ run "defaults_and_scale_to_zero" {
   }
 
   assert {
-    condition     = length(output.resource.profile[0].rule) == 0 && length(output.resource.notification) == 0 && length(output.resource.predictive) == 0 && length(modtm_telemetry.telemetry) == 1
+    condition     = length(output.resource.profile[0].rule) == 0 && length(output.resource.notification) == 0 && length(output.resource.predictive) == 0 && length(azapi_resource.telemetry) == 1 && length(terraform_data.telemetry) == 1 && length(data.azapi_client_config.telemetry) == 1
     error_message = "Optional blocks must remain absent while default telemetry is mocked."
   }
 }
@@ -56,10 +61,9 @@ run "defaults_and_scale_to_zero" {
 run "rules_schedules_and_notifications" {
   command = apply
   providers = {
-    azurerm = azurerm
-    azapi   = azapi
-    modtm   = modtm
-    random  = random
+    azurerm   = azurerm
+    azapi     = azapi
+    terraform = terraform
   }
 
   variables {
@@ -156,10 +160,9 @@ run "rules_schedules_and_notifications" {
 run "disabled_scaling_and_telemetry" {
   command = apply
   providers = {
-    azurerm = azurerm
-    azapi   = azapi
-    modtm   = modtm
-    random  = random
+    azurerm   = azurerm
+    azapi     = azapi
+    terraform = terraform
   }
 
   variables {
@@ -168,7 +171,7 @@ run "disabled_scaling_and_telemetry" {
   }
 
   assert {
-    condition     = !output.resource.enabled && length(modtm_telemetry.telemetry) == 0 && length(random_uuid.telemetry) == 0 && length(data.azapi_client_config.telemetry) == 0 && length(data.modtm_module_source.telemetry) == 0
+    condition     = !output.resource.enabled && length(azapi_resource.telemetry) == 0 && length(terraform_data.telemetry) == 0 && length(data.azapi_client_config.telemetry) == 0
     error_message = "Disabling scaling must preserve the setting and disabling telemetry must create no telemetry instances."
   }
 }
