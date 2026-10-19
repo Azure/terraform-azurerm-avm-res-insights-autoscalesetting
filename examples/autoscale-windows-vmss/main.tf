@@ -1,7 +1,7 @@
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.1"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 module "get_valid_sku_for_deployment_region" {
@@ -108,12 +108,11 @@ resource "azurerm_subnet_nat_gateway_association" "this" {
 # This is the module call
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.5.3"
+  version = "0.11.1"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
   name                        = module.naming.virtual_machine_scale_set.name_unique
-  resource_group_name         = azurerm_resource_group.this.name
   user_data_base64            = null
   admin_password              = "P@ssw0rd1234!"
   admin_ssh_keys              = []
@@ -179,7 +178,8 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     sku       = "2022-Datacenter"
     version   = "latest"
   }
-  tags = local.tags
+  tags                = local.tags
+  resource_group_name = azurerm_resource_group.this.name
 
   depends_on = [azurerm_subnet_nat_gateway_association.this]
 }
