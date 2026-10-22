@@ -113,12 +113,6 @@ resource "tls_private_key" "example_ssh" {
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
   version = "0.5.3"
-  providers = {
-    azapi   = azapi
-    azurerm = azurerm
-    modtm   = modtm
-    random  = random
-  }
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
