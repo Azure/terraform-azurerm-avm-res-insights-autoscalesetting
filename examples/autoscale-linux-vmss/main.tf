@@ -1,7 +1,7 @@
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "get_valid_sku_for_deployment_region" {
@@ -112,7 +112,7 @@ resource "tls_private_key" "example_ssh" {
 
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.5.3"
+  version = "0.11.1"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
