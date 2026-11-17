@@ -112,13 +112,13 @@ resource "tls_private_key" "example_ssh" {
 
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.11.1"
+  version = "0.11.3"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
   name                        = module.naming.virtual_machine_scale_set.name_unique
-  user_data_base64            = null
-  admin_password              = "P@ssw0rd1234!"
+  parent_id                   = azurerm_resource_group.this.id
+  user_data_base64            = base64encode(file("user-data.sh"))
   admin_ssh_keys = [(
     {
       id         = tls_private_key.example_ssh.id
@@ -129,7 +129,9 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   boot_diagnostics = {
     storage_account_uri = "" # Enable boot diagnostics
   }
-  enable_telemetry = var.enable_telemetry
+  custom_data         = base64encode(file("custom-data.yaml"))
+  custom_data_version = "v1"
+  enable_telemetry    = var.enable_telemetry
   extension = [{
     name                        = "HealthExtension"
     publisher                   = "Microsoft.ManagedServices"
@@ -149,12 +151,10 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     }]
   }]
   os_profile = {
-    custom_data = base64encode(file("custom-data.yaml"))
     linux_configuration = {
-      disable_password_authentication = false
-      user_data_base64                = base64encode(file("user-data.sh"))
+      disable_password_authentication = true
       admin_username                  = "azureuser"
-      admin_ssh_key                   = toset([tls_private_key.example_ssh.id])
+      admin_ssh_key_id                = toset([tls_private_key.example_ssh.id])
     }
   }
   sku_name = module.get_valid_sku_for_deployment_region.sku
@@ -164,8 +164,8 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     sku       = "22_04-LTS-gen2" # Auto guest patching is enabled on this sku.  https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching
     version   = "latest"
   }
-  tags                = local.tags
-  resource_group_name = azurerm_resource_group.this.name
+  tags                     = local.tags
+  user_data_base64_version = "v1"
 
   depends_on = [azurerm_subnet_nat_gateway_association.this]
 }

@@ -17,7 +17,7 @@ This example demonstrates a standard deployment with Windows VMs.  The deploymen
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "get_valid_sku_for_deployment_region" {
@@ -124,18 +124,21 @@ resource "azurerm_subnet_nat_gateway_association" "this" {
 # This is the module call
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.5.3"
+  version = "0.11.3"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
   name                        = module.naming.virtual_machine_scale_set.name_unique
-  resource_group_name         = azurerm_resource_group.this.name
+  parent_id                   = azurerm_resource_group.this.id
   user_data_base64            = null
   admin_password              = "P@ssw0rd1234!"
+  admin_password_version      = "v1"
   admin_ssh_keys              = []
   boot_diagnostics = {
     storage_account_uri = "" # Enable boot diagnostics
   }
+  custom_data         = base64encode(file("init-script.ps1"))
+  custom_data_version = "v1"
   data_disk = [{
     caching                   = "ReadWrite"
     create_option             = "Empty"
@@ -165,7 +168,8 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
       failure_suppression_enabled = false
       settings                    = "{\"port\":80,\"protocol\":\"http\",\"requestPath\":\"index.html\"}"
   }]
-  instances = 2
+  instances    = 2
+  license_type = "None"
   network_interface = [{
     name                      = "VMSS-NIC"
     network_security_group_id = azurerm_network_security_group.nic.id
@@ -175,14 +179,11 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     }]
   }]
   os_profile = {
-    custom_data = base64encode(file("init-script.ps1"))
     windows_configuration = {
-      disable_password_authentication = false
-      admin_username                  = "azureuser"
-      license_type                    = "None"
-      hotpatching_enabled             = false
-      timezone                        = "Pacific Standard Time"
-      provision_vm_agent              = true
+      admin_username      = "azureuser"
+      hotpatching_enabled = false
+      timezone            = "Pacific Standard Time"
+      provision_vm_agent  = true
       winrm_listener = [{
         protocol = "Http"
       }]
@@ -278,8 +279,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.6)
 
 ## Resources
@@ -332,10 +331,6 @@ Description: The name of the Resource Group.
 
 Description: The ID of the Virtual Machine Scale Set
 
-### <a name="output_virtual_machine_scale_set"></a> [virtual\_machine\_scale\_set](#output\_virtual\_machine\_scale\_set)
-
-Description: All attributes of the Virtual Machine Scale Set resource.
-
 ### <a name="output_virtual_machine_scale_set_id"></a> [virtual\_machine\_scale\_set\_id](#output\_virtual\_machine\_scale\_set\_id)
 
 Description: The ID of the Virtual Machine Scale Set.
@@ -364,13 +359,13 @@ Version:
 
 Source: Azure/avm-utl-naming/azure
 
-Version: 0.2.0
+Version: 0.3.0
 
 ### <a name="module_terraform_azurerm_avm_res_compute_virtualmachinescaleset"></a> [terraform\_azurerm\_avm\_res\_compute\_virtualmachinescaleset](#module\_terraform\_azurerm\_avm\_res\_compute\_virtualmachinescaleset)
 
 Source: Azure/avm-res-compute-virtualmachinescaleset/azurerm
 
-Version: 0.5.3
+Version: 0.11.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
