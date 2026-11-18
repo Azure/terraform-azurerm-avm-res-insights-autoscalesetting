@@ -18,7 +18,7 @@ This example demonstrates a deployment of linux VMSS with autoscale setting modu
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "get_valid_sku_for_deployment_region" {
@@ -129,14 +129,13 @@ resource "tls_private_key" "example_ssh" {
 
 module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   source  = "Azure/avm-res-compute-virtualmachinescaleset/azurerm"
-  version = "0.5.3"
+  version = "0.11.3"
 
   extension_protected_setting = {}
   location                    = azurerm_resource_group.this.location
   name                        = module.naming.virtual_machine_scale_set.name_unique
-  resource_group_name         = azurerm_resource_group.this.name
-  user_data_base64            = null
-  admin_password              = "P@ssw0rd1234!"
+  parent_id                   = azurerm_resource_group.this.id
+  user_data_base64            = base64encode(file("user-data.sh"))
   admin_ssh_keys = [(
     {
       id         = tls_private_key.example_ssh.id
@@ -147,7 +146,9 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
   boot_diagnostics = {
     storage_account_uri = "" # Enable boot diagnostics
   }
-  enable_telemetry = var.enable_telemetry
+  custom_data         = base64encode(file("custom-data.yaml"))
+  custom_data_version = "v1"
+  enable_telemetry    = var.enable_telemetry
   extension = [{
     name                        = "HealthExtension"
     publisher                   = "Microsoft.ManagedServices"
@@ -167,12 +168,10 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     }]
   }]
   os_profile = {
-    custom_data = base64encode(file("custom-data.yaml"))
     linux_configuration = {
-      disable_password_authentication = false
-      user_data_base64                = base64encode(file("user-data.sh"))
+      disable_password_authentication = true
       admin_username                  = "azureuser"
-      admin_ssh_key                   = toset([tls_private_key.example_ssh.id])
+      admin_ssh_key_id                = toset([tls_private_key.example_ssh.id])
     }
   }
   sku_name = module.get_valid_sku_for_deployment_region.sku
@@ -182,7 +181,8 @@ module "terraform_azurerm_avm_res_compute_virtualmachinescaleset" {
     sku       = "22_04-LTS-gen2" # Auto guest patching is enabled on this sku.  https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching
     version   = "latest"
   }
-  tags = local.tags
+  tags                     = local.tags
+  user_data_base64_version = "v1"
 
   depends_on = [azurerm_subnet_nat_gateway_association.this]
 }
@@ -259,17 +259,15 @@ module "azurerm_monitor_autoscale_setting" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.12.0, < 2.0.0)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.6)
 
-- <a name="requirement_tls"></a> [tls](#requirement\_tls) (4.0.6)
+- <a name="requirement_tls"></a> [tls](#requirement\_tls) (4.4.2)
 
 ## Resources
 
@@ -285,7 +283,7 @@ The following resources are used by this module:
 - [azurerm_subnet_nat_gateway_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_nat_gateway_association) (resource)
 - [azurerm_subnet_network_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet_network_security_group_association) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
-- [tls_private_key.example_ssh](https://registry.terraform.io/providers/hashicorp/tls/4.0.6/docs/resources/private_key) (resource)
+- [tls_private_key.example_ssh](https://registry.terraform.io/providers/hashicorp/tls/4.4.2/docs/resources/private_key) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -322,10 +320,6 @@ Description: The name of the Resource Group.
 
 Description: The ID of the Virtual Machine Scale Set
 
-### <a name="output_virtual_machine_scale_set"></a> [virtual\_machine\_scale\_set](#output\_virtual\_machine\_scale\_set)
-
-Description: All attributes of the Virtual Machine Scale Set resource.
-
 ### <a name="output_virtual_machine_scale_set_id"></a> [virtual\_machine\_scale\_set\_id](#output\_virtual\_machine\_scale\_set\_id)
 
 Description: The ID of the Virtual Machine Scale Set.
@@ -354,13 +348,13 @@ Version:
 
 Source: Azure/avm-utl-naming/azure
 
-Version: 0.2.0
+Version: 0.3.0
 
 ### <a name="module_terraform_azurerm_avm_res_compute_virtualmachinescaleset"></a> [terraform\_azurerm\_avm\_res\_compute\_virtualmachinescaleset](#module\_terraform\_azurerm\_avm\_res\_compute\_virtualmachinescaleset)
 
 Source: Azure/avm-res-compute-virtualmachinescaleset/azurerm
 
-Version: 0.5.3
+Version: 0.11.3
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
